@@ -1,0 +1,14 @@
+{
+  "name": "N2 冲刺自习室",
+  "short_name": "N2 自习室",
+  "description": "本地优先的日语 N2 冲刺学习工具",
+  "lang": "zh-CN",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f7f3",
+  "theme_color": "#f7f7f3",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
