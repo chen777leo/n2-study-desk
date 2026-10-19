@@ -1,4 +1,4 @@
-const CACHE_NAME='n2-study-desk-v4';
+const CACHE_NAME='n2-study-desk-v5';
 const ASSETS=['./','./index.html','./styles.css','./local-study.css','./app.js','./account-config.js','./account-sync.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));});
