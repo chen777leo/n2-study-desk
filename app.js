@@ -91,14 +91,22 @@ const grammarCards=[{pattern:'〜に伴って',meaning:'表示随着前项变化
 let level='N2',category='词汇',index=0,selected=null,answered=false;
 const byId=id=>document.getElementById(id);
 const LOCAL_KEY='n2-study-desk-v1';
-let studyData={solved:0,correct:0,mistakes:[],tasks:{}};
-try{studyData={...studyData,...JSON.parse(localStorage.getItem(LOCAL_KEY)||'{}')}}catch{}
-function saveStudy(){try{localStorage.setItem(LOCAL_KEY,JSON.stringify(studyData));byId('saved-hint').textContent='已保存在本机浏览器';}catch{byId('saved-hint').textContent='浏览器未开放本地保存';}refreshStats();}
+const OWNER_KEY='n2-study-owner-v1';
+let studyOwner=localStorage.getItem(OWNER_KEY)||'guest';
+const storageKey=()=>studyOwner==='guest'?LOCAL_KEY:`${LOCAL_KEY}:${studyOwner}`;
+let studyData={solved:0,correct:0,mistakes:[],tasks:{},examDate:'2026-12-06'};
+try{studyData={...studyData,...JSON.parse(localStorage.getItem(storageKey())||'{}')}}catch{}
+if(!studyData.examDate)studyData.examDate='2026-12-06';
+function saveStudy(){try{localStorage.setItem(storageKey(),JSON.stringify(studyData));localStorage.setItem(OWNER_KEY,studyOwner);byId('saved-hint').textContent='已保存在本机浏览器';}catch{byId('saved-hint').textContent='浏览器未开放本地保存';}refreshStats();window.N2QueueCloudSave?.(studyData);}
+window.N2ReadStudyData=()=>JSON.parse(JSON.stringify(studyData));
+window.N2StudyDataOwner=()=>studyOwner;
+window.N2ApplyStudyData=(data,owner=studyOwner)=>{studyOwner=owner;studyData={...{solved:0,correct:0,mistakes:[],tasks:{},examDate:'2026-12-06'},...(data||{})};try{localStorage.setItem(OWNER_KEY,studyOwner);localStorage.setItem(storageKey(),JSON.stringify(studyData));if(studyOwner!=='guest')localStorage.removeItem(LOCAL_KEY);}catch{}document.querySelectorAll('[data-task]').forEach(box=>box.checked=Boolean(studyData.tasks?.[dateKey()]?.[box.dataset.task]));byId('exam-date').value=studyData.examDate||'2026-12-06';updateCountdown();refreshStats();};
+window.N2ClearStudyUser=()=>window.N2ApplyStudyData({solved:0,correct:0,mistakes:[],tasks:{},examDate:'2026-12-06'},'guest');
 function refreshStats(){byId('solved-count').textContent=studyData.solved||0;byId('accuracy').textContent=studyData.solved?`${Math.round(studyData.correct/studyData.solved*100)}%`:'—';byId('mistake-count').textContent=(studyData.mistakes||[]).length;}
 function dateKey(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function updateCountdown(){const target=new Date(`${byId('exam-date').value||'2026-12-06'}T23:59:00`);const today=new Date();today.setHours(0,0,0,0);byId('days-left').textContent=Math.max(0,Math.ceil((target-today)/86400000));}
 document.querySelectorAll('[data-task]').forEach(box=>{box.checked=Boolean(studyData.tasks?.[dateKey()]?.[box.dataset.task]);box.addEventListener('change',()=>{studyData.tasks||={};studyData.tasks[dateKey()]||={};studyData.tasks[dateKey()][box.dataset.task]=box.checked;saveStudy();});});
-byId('exam-date').addEventListener('change',updateCountdown);byId('reset-day').addEventListener('click',()=>{document.querySelectorAll('[data-task]').forEach(x=>x.checked=false);studyData.tasks[dateKey()]={};saveStudy();});
+byId('exam-date').value=studyData.examDate||'2026-12-06';byId('exam-date').addEventListener('change',()=>{studyData.examDate=byId('exam-date').value;updateCountdown();saveStudy();});byId('reset-day').addEventListener('click',()=>{document.querySelectorAll('[data-task]').forEach(x=>x.checked=false);studyData.tasks[dateKey()]={};saveStudy();});
 function showMistakes(){const box=byId('mistake-list');if(!box.hidden){box.hidden=true;return}box.hidden=false;const mistakes=studyData.mistakes||[];box.innerHTML='<h3>错题回顾 · 先回忆，再看答案</h3>'+ (mistakes.length?mistakes.slice().reverse().map(m=>`<div class="mistake-item"><b>${m.level} · ${m.category} · ${m.tag}</b>${m.prompt}${m.context?`<br><small>${m.context}</small>`:''}<br><small>正确答案：${m.correctAnswer}　解析：${m.explain}</small></div>`).join(''):'<div class="mistake-empty">目前还没有错题。完成练习后，答错的题会自动收进这里。</div>');}
 byId('review-mistakes').addEventListener('click',showMistakes);
 function renderQuestion(){const list=level==='N3'?sets[category]:levelSets[level][category],q=list[index];selected=null;answered=false;byId('question-category')?.remove();byId('quiz-category').textContent=category;byId('question-count').textContent=`第 ${index+1} 题 / 共 ${list.length} 题`;byId('progress-bar').style.width=`${((index+1)/list.length)*100}%`;byId('question-tag').textContent=q.tag;byId('question-level').textContent=level;byId('aside-count').textContent=`${String(index+1).padStart(2,'0')} — ${String(list.length).padStart(2,'0')}`;
