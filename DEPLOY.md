@@ -1,17 +1,16 @@
-# 发布到网络
+# GitHub Pages 与跨设备同步
 
-网站静态页面部署在 GitHub Pages。要让同一账号在不同设备共享学习记录，还需要部署 Cloudflare Worker API 和 D1 数据库。
+前端发布到 GitHub Pages；跨设备学习记录使用 MantleDB 免费匿名 JSON API，不需要注册或部署后端。
 
-## GitHub Pages
+仓库： [chen777leo/n2-study-desk](https://github.com/chen777leo/n2-study-desk)
 
-仓库为 [chen777leo/n2-study-desk](https://github.com/chen777leo/n2-study-desk)，Pages 从 `main` 分支根目录发布。
+account-config.js 已预设专用 namespace。首次选择一个账号时，网页读取该账号云端记录；若尚无记录，会将当前设备该账号的本地进度写入云端。之后每次学习变更自动保存，并在页面显示时每 30 秒检查其他设备的更新。
 
-## 云端同步部署
+## 公开与免费层说明
 
-1. 在 Cloudflare 创建 D1 数据库，名称例如 `n2-study-desk`，运行 `backend/schema.sql`。
-2. 创建 Worker 并发布 `backend/worker.js`，添加 D1 binding，binding 名称为 `DB`。
-3. 设置 Worker 普通变量 `SITE_ORIGIN`，值为 `https://chen777leo.github.io`。
-4. 将 Worker 的 HTTPS 地址填入 `account-config.js` 的 `window.N2_API_BASE`，再提交到 GitHub。
-5. 等 Pages 更新后，用同一个用户名在不同设备选择账号，进度即从云端读取并自动保存。页面每 5 秒检查一次其他设备的新记录，答题及计划修改后约 0.5 秒开始上传。
+- 无需注册、密码或专属后端，数据可跨设备读写。
+- 数据公开可读写；其他人只要知道网站和账号名，即可查看或覆盖记录。不要存放隐私内容。
+- 每个 namespace 最多 100 条记录、每条最多 64 KB，每日 10,000 次请求；30 天无写入会被清理。
+- 账号首次连接时，现有本地学习记录会上传到这个公开云端 namespace。
 
-账号只有用户名，没有密码。知道 `leo1`–`leo5` 名称的人都能读写对应学习记录；不要在记录里保存隐私信息。未部署 API 时，页面只保存本机记录。
+网页地址： https://chen777leo.github.io/n2-study-desk/
